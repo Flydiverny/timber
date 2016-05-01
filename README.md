@@ -1,7 +1,6 @@
 ![Timber](logo.png)
 
-This is a logger with a small, extensible API which provides utility on top of Android's normal
-`Log` class.
+This is a logger with a small, extensible API which provides utility on top of any logger.
 
 I copy this class into all the little apps I make. I'm tired of doing it. Now it's a library.
 
@@ -12,6 +11,10 @@ the most logical choice.
 The `DebugTree` implementation will automatically figure out from which class it's being called and
 use that class name as its tag. Since the tags vary, it works really well when coupled with a log
 reader like [Pidcat][1].
+
+All `Tree` constructors take a `LogStrategy` to determine how to perform the actual logging (this is
+done to keep Timber logging-agnostic). For Android, you can pass an instance of the included
+`AndroidTimberLogStrategy` to log directly to `android.util.Log`.
 
 There are no `Tree` implementations installed by default because every time you log in production, a
 puppy dies.
