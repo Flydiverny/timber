@@ -15,6 +15,9 @@ allprojects {
     sourceCompatibilityVersion = JavaVersion.VERSION_1_6
     targetCompatibilityVersion = JavaVersion.VERSION_1_6
   }
+
+  group 'com.kevinmost.timber'
+  version '5.0.0'
 }
 
 ext {
