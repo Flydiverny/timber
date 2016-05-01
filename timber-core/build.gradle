@@ -1,0 +1,7 @@
+apply plugin: 'java'
+
+dependencies {
+  compile fileTree(dir: 'libs', include: ['*.jar'])
+
+  compileOnly 'org.jetbrains:annotations:13.0'
+}

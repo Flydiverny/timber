@@ -1,6 +1,5 @@
 package timber.log;
 
-import android.util.Log;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -172,7 +171,7 @@ public final class Timber {
   static volatile Tree[] forestAsArray = TREE_ARRAY_EMPTY;
 
   /** A {@link Tree} that delegates to all planted trees in the {@linkplain #FOREST forest}. */
-  private static final Tree TREE_OF_SOULS = new Tree() {
+  private static final Tree TREE_OF_SOULS = new Tree(null) {
     @Override public void v(String message, Object... args) {
       Tree[] forest = forestAsArray;
       //noinspection ForLoopReplaceableByForEach
@@ -294,9 +293,26 @@ public final class Timber {
     throw new AssertionError("No instances.");
   }
 
+  public interface LogStrategy {
+    int verboseLevel();
+    int debugLevel();
+    int infoLevel();
+    int warnLevel();
+    int errorLevel();
+    int wtfLevel();
+
+    void performLog(int priority, String tag, String message);
+  }
+
   /** A facade for handling logging calls. Install instances via {@link #plant Timber.plant()}. */
   public static abstract class Tree {
+    protected final LogStrategy logStrategy;
+
     final ThreadLocal<String> explicitTag = new ThreadLocal<>();
+
+    public Tree(LogStrategy logStrategy) {
+      this.logStrategy = logStrategy;
+    }
 
     String getTag() {
       String tag = explicitTag.get();
@@ -308,62 +324,62 @@ public final class Timber {
 
     /** Log a verbose message with optional format args. */
     public void v(String message, Object... args) {
-      prepareLog(Log.VERBOSE, null, message, args);
+      prepareLog(logStrategy.verboseLevel(), null, message, args);
     }
 
     /** Log a verbose exception and a message with optional format args. */
     public void v(Throwable t, String message, Object... args) {
-      prepareLog(Log.VERBOSE, t, message, args);
+      prepareLog(logStrategy.verboseLevel(), t, message, args);
     }
 
     /** Log a debug message with optional format args. */
     public void d(String message, Object... args) {
-      prepareLog(Log.DEBUG, null, message, args);
+      prepareLog(logStrategy.debugLevel(), null, message, args);
     }
 
     /** Log a debug exception and a message with optional format args. */
     public void d(Throwable t, String message, Object... args) {
-      prepareLog(Log.DEBUG, t, message, args);
+      prepareLog(logStrategy.debugLevel(), t, message, args);
     }
 
     /** Log an info message with optional format args. */
     public void i(String message, Object... args) {
-      prepareLog(Log.INFO, null, message, args);
+      prepareLog(logStrategy.infoLevel(), null, message, args);
     }
 
     /** Log an info exception and a message with optional format args. */
     public void i(Throwable t, String message, Object... args) {
-      prepareLog(Log.INFO, t, message, args);
+      prepareLog(logStrategy.infoLevel(), t, message, args);
     }
 
     /** Log a warning message with optional format args. */
     public void w(String message, Object... args) {
-      prepareLog(Log.WARN, null, message, args);
+      prepareLog(logStrategy.warnLevel(), null, message, args);
     }
 
     /** Log a warning exception and a message with optional format args. */
     public void w(Throwable t, String message, Object... args) {
-      prepareLog(Log.WARN, t, message, args);
+      prepareLog(logStrategy.warnLevel(), t, message, args);
     }
 
     /** Log an error message with optional format args. */
     public void e(String message, Object... args) {
-      prepareLog(Log.ERROR, null, message, args);
+      prepareLog(logStrategy.errorLevel(), null, message, args);
     }
 
     /** Log an error exception and a message with optional format args. */
     public void e(Throwable t, String message, Object... args) {
-      prepareLog(Log.ERROR, t, message, args);
+      prepareLog(logStrategy.errorLevel(), t, message, args);
     }
 
     /** Log an assert message with optional format args. */
     public void wtf(String message, Object... args) {
-      prepareLog(Log.ASSERT, null, message, args);
+      prepareLog(logStrategy.wtfLevel(), null, message, args);
     }
 
     /** Log an assert exception and a message with optional format args. */
     public void wtf(Throwable t, String message, Object... args) {
-      prepareLog(Log.ASSERT, t, message, args);
+      prepareLog(logStrategy.wtfLevel(), t, message, args);
     }
 
     /** Log at {@code priority} a message with optional format args. */
@@ -418,7 +434,7 @@ public final class Timber {
     /**
      * Write a log message to its destination. Called for all level-specific methods by default.
      *
-     * @param priority Log level. See {@link Log} for constants.
+     * @param priority Log level, from {@link LogStrategy}.
      * @param tag Explicit or inferred tag. May be {@code null}.
      * @param message Formatted log message. May be {@code null}, but then {@code t} will not be.
      * @param t Accompanying exceptions. May be {@code null}, but then {@code message} will not be.
@@ -431,6 +447,10 @@ public final class Timber {
     private static final int MAX_LOG_LENGTH = 4000;
     private static final int CALL_STACK_INDEX = 5;
     private static final Pattern ANONYMOUS_CLASS = Pattern.compile("(\\$\\d+)+$");
+
+    public DebugTree(LogStrategy logStrategy) {
+      super(logStrategy);
+    }
 
     /**
      * Extract the tag which should be used for the message from the {@code element}. By default
@@ -465,19 +485,14 @@ public final class Timber {
     }
 
     /**
-     * Break up {@code message} into maximum-length chunks (if needed) and send to either
-     * {@link Log#println(int, String, String) Log.println()} or
-     * {@link Log#wtf(String, String) Log.wtf()} for logging.
+     * Break up {@code message} into maximum-length chunks (if needed) and send to
+     * {@link LogStrategy#performLog(int, String, String)}
      *
      * {@inheritDoc}
      */
     @Override protected void log(int priority, String tag, String message, Throwable t) {
       if (message.length() < MAX_LOG_LENGTH) {
-        if (priority == Log.ASSERT) {
-          Log.wtf(tag, message);
-        } else {
-          Log.println(priority, tag, message);
-        }
+        logStrategy.performLog(priority, tag, message);
         return;
       }
 
@@ -488,11 +503,7 @@ public final class Timber {
         do {
           int end = Math.min(newline, i + MAX_LOG_LENGTH);
           String part = message.substring(i, end);
-          if (priority == Log.ASSERT) {
-            Log.wtf(tag, part);
-          } else {
-            Log.println(priority, tag, part);
-          }
+          logStrategy.performLog(priority, tag, part);
           i = end;
         } while (i < newline);
       }
