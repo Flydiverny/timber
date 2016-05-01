@@ -155,7 +155,7 @@ public final class Timber {
   /** Return a copy of all planted {@linkplain Tree trees}. */
   public static List<Tree> forest() {
     synchronized (FOREST) {
-      return unmodifiableList(new ArrayList<>(FOREST));
+      return unmodifiableList(new ArrayList<Tree>(FOREST));
     }
   }
 
@@ -167,7 +167,7 @@ public final class Timber {
 
   private static final Tree[] TREE_ARRAY_EMPTY = new Tree[0];
   // Both fields guarded by 'FOREST'.
-  private static final List<Tree> FOREST = new ArrayList<>();
+  private static final List<Tree> FOREST = new ArrayList<Tree>();
   static volatile Tree[] forestAsArray = TREE_ARRAY_EMPTY;
 
   /** A {@link Tree} that delegates to all planted trees in the {@linkplain #FOREST forest}. */
@@ -308,7 +308,7 @@ public final class Timber {
   public static abstract class Tree {
     protected final LogStrategy logStrategy;
 
-    final ThreadLocal<String> explicitTag = new ThreadLocal<>();
+    final ThreadLocal<String> explicitTag = new ThreadLocal<String>();
 
     public Tree(LogStrategy logStrategy) {
       this.logStrategy = logStrategy;

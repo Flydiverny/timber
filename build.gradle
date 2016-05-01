@@ -11,6 +11,10 @@ allprojects {
   repositories {
     mavenCentral()
   }
+  ext {
+    sourceCompatibilityVersion = JavaVersion.VERSION_1_6
+    targetCompatibilityVersion = JavaVersion.VERSION_1_6
+  }
 }
 
 ext {
