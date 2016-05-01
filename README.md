@@ -78,12 +78,31 @@ Timber ships with embedded lint rules to detect problems in your app.
 Download
 --------
 
+Add Jitpack to your repositories. In your root `build.gradle`:
+
 ```groovy
-compile 'com.jakewharton.timber:timber:4.1.2'
+allprojects {
+  repositories {
+    // add all other repositories above this one!
+    maven { url "https://jitpack.io" }
+  }
+}
 ```
 
-Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
+For use in pure Java projects, add the `timber-core` dependency:
 
+```groovy
+compile 'com.github.kevinmost.timber:timber-core:5.0.0'
+```
+
+For use in Android projects, add the `timber-android` dependency:
+
+```groovy
+compile 'com.github.kevinmost.timber:timber-android:5.0.0'
+```
+
+You may mix-and-match the two, for example, if you have a Java module inside of your Android app,
+to allow for logging to the Android-planted `Tree` from within the Java project.
 
 License
 -------
@@ -105,4 +124,3 @@ License
 
 
  [1]: http://github.com/JakeWharton/pidcat/
- [snap]: https://oss.sonatype.org/content/repositories/snapshots/
