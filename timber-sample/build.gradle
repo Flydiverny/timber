@@ -25,6 +25,6 @@ android {
 }
 
 dependencies {
-  compile project(':timber')
+  compile project(':timber-android')
   compile 'com.jakewharton:butterknife:7.0.1'
 }

@@ -37,7 +37,7 @@ configurations {
 }
 
 dependencies {
-  compile project(":timber-core")
+  compile project(':timber-core')
 
   testCompile deps.festandroid
   testCompile deps.festassert
