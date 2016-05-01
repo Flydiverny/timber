@@ -11,6 +11,10 @@ allprojects {
   repositories {
     mavenCentral()
   }
+  ext {
+    sourceCompatibilityVersion = JavaVersion.VERSION_1_6
+    targetCompatibilityVersion = JavaVersion.VERSION_1_6
+  }
 }
 
 ext {
@@ -18,8 +22,6 @@ ext {
   targetSdkVersion = 23
   compileSdkVersion = 23
   buildToolsVersion = '23.0.1'
-  sourceCompatibilityVersion = JavaVersion.VERSION_1_7
-  targetCompatibilityVersion = JavaVersion.VERSION_1_7
 }
 
 ext.deps = [
