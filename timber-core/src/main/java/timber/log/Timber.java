@@ -1,11 +1,7 @@
 package timber.log;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NonNls;
 
 import static java.util.Collections.unmodifiableList;
@@ -14,7 +10,7 @@ import static java.util.Collections.unmodifiableList;
 public final class Timber {
   /** Log a verbose message with optional format args. */
   public static void v(@NonNls String message, Object... args) {
-    TREE_OF_SOULS.v(message, args);
+    TREE_OF_SOULS.v(null, message, args);
   }
 
   /** Log a verbose exception and a message with optional format args. */
@@ -24,7 +20,7 @@ public final class Timber {
 
   /** Log a debug message with optional format args. */
   public static void d(@NonNls String message, Object... args) {
-    TREE_OF_SOULS.d(message, args);
+    TREE_OF_SOULS.d(null, message, args);
   }
 
   /** Log a debug exception and a message with optional format args. */
@@ -34,7 +30,7 @@ public final class Timber {
 
   /** Log an info message with optional format args. */
   public static void i(@NonNls String message, Object... args) {
-    TREE_OF_SOULS.i(message, args);
+    TREE_OF_SOULS.i(null, message, args);
   }
 
   /** Log an info exception and a message with optional format args. */
@@ -44,7 +40,7 @@ public final class Timber {
 
   /** Log a warning message with optional format args. */
   public static void w(@NonNls String message, Object... args) {
-    TREE_OF_SOULS.w(message, args);
+    TREE_OF_SOULS.w(null, message, args);
   }
 
   /** Log a warning exception and a message with optional format args. */
@@ -54,7 +50,7 @@ public final class Timber {
 
   /** Log an error message with optional format args. */
   public static void e(@NonNls String message, Object... args) {
-    TREE_OF_SOULS.e(message, args);
+    TREE_OF_SOULS.e(null, message, args);
   }
 
   /** Log an error exception and a message with optional format args. */
@@ -64,7 +60,7 @@ public final class Timber {
 
   /** Log an assert message with optional format args. */
   public static void wtf(@NonNls String message, Object... args) {
-    TREE_OF_SOULS.wtf(message, args);
+    TREE_OF_SOULS.wtf(null, message, args);
   }
 
   /** Log an assert exception and a message with optional format args. */
@@ -74,7 +70,7 @@ public final class Timber {
 
   /** Log at {@code priority} a message with optional format args. */
   public static void log(int priority, @NonNls String message, Object... args) {
-    TREE_OF_SOULS.log(priority, message, args);
+    TREE_OF_SOULS.log(priority, null, message, args);
   }
 
   /** Log at {@code priority} an exception and a message with optional format args. */
@@ -151,28 +147,13 @@ public final class Timber {
   static volatile Tree[] forestAsArray = TREE_ARRAY_EMPTY;
 
   /** A {@link Tree} that delegates to all planted trees in the {@linkplain #FOREST forest}. */
-  private static final Tree TREE_OF_SOULS = new Tree(null) {
-    @Override public void v(String message, Object... args) {
-      Tree[] forest = forestAsArray;
-      //noinspection ForLoopReplaceableByForEach
-      for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].v(message, args);
-      }
-    }
+  private static final Tree TREE_OF_SOULS = new Tree(null, null) {
 
     @Override public void v(Throwable t, String message, Object... args) {
       Tree[] forest = forestAsArray;
       //noinspection ForLoopReplaceableByForEach
       for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].v(t, message, args);
-      }
-    }
-
-    @Override public void d(String message, Object... args) {
-      Tree[] forest = forestAsArray;
-      //noinspection ForLoopReplaceableByForEach
-      for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].d(message, args);
+        forest[i].log(forest[i].logLevel.verboseLevel(), t, message, args);
       }
     }
 
@@ -180,15 +161,7 @@ public final class Timber {
       Tree[] forest = forestAsArray;
       //noinspection ForLoopReplaceableByForEach
       for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].d(t, message, args);
-      }
-    }
-
-    @Override public void i(String message, Object... args) {
-      Tree[] forest = forestAsArray;
-      //noinspection ForLoopReplaceableByForEach
-      for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].i(message, args);
+        forest[i].log(forest[i].logLevel.debugLevel(), t, message, args);
       }
     }
 
@@ -196,15 +169,7 @@ public final class Timber {
       Tree[] forest = forestAsArray;
       //noinspection ForLoopReplaceableByForEach
       for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].i(t, message, args);
-      }
-    }
-
-    @Override public void w(String message, Object... args) {
-      Tree[] forest = forestAsArray;
-      //noinspection ForLoopReplaceableByForEach
-      for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].w(message, args);
+        forest[i].log(forest[i].logLevel.infoLevel(), t, message, args);
       }
     }
 
@@ -212,15 +177,7 @@ public final class Timber {
       Tree[] forest = forestAsArray;
       //noinspection ForLoopReplaceableByForEach
       for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].w(t, message, args);
-      }
-    }
-
-    @Override public void e(String message, Object... args) {
-      Tree[] forest = forestAsArray;
-      //noinspection ForLoopReplaceableByForEach
-      for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].e(message, args);
+        forest[i].log(forest[i].logLevel.warnLevel(), t, message, args);
       }
     }
 
@@ -228,15 +185,7 @@ public final class Timber {
       Tree[] forest = forestAsArray;
       //noinspection ForLoopReplaceableByForEach
       for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].e(t, message, args);
-      }
-    }
-
-    @Override public void wtf(String message, Object... args) {
-      Tree[] forest = forestAsArray;
-      //noinspection ForLoopReplaceableByForEach
-      for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].wtf(message, args);
+        forest[i].log(forest[i].logLevel.errorLevel(), t, message, args);
       }
     }
 
@@ -244,28 +193,16 @@ public final class Timber {
       Tree[] forest = forestAsArray;
       //noinspection ForLoopReplaceableByForEach
       for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].wtf(t, message, args);
+        forest[i].log(forest[i].logLevel.wtfLevel(), t, message, args);
       }
     }
 
-    @Override public void log(int priority, String message, Object... args) {
-      Tree[] forest = forestAsArray;
-      //noinspection ForLoopReplaceableByForEach
-      for (int i = 0, count = forest.length; i < count; i++) {
-        forest[i].log(priority, message, args);
-      }
-    }
-
-    @Override public void log(int priority, Throwable t, String message, Object... args) {
+    @Override void log(int priority, Throwable t, String message, Object... args) {
       Tree[] forest = forestAsArray;
       //noinspection ForLoopReplaceableByForEach
       for (int i = 0, count = forest.length; i < count; i++) {
         forest[i].log(priority, t, message, args);
       }
-    }
-
-    @Override protected void log(int priority, String tag, String message, Throwable t) {
-      throw new AssertionError("Missing override for log method.");
     }
   };
 
@@ -273,220 +210,4 @@ public final class Timber {
     throw new AssertionError("No instances.");
   }
 
-  public interface LogStrategy {
-    int verboseLevel();
-    int debugLevel();
-    int infoLevel();
-    int warnLevel();
-    int errorLevel();
-    int wtfLevel();
-
-    void performLog(int priority, String tag, String message);
-  }
-
-  /** A facade for handling logging calls. Install instances via {@link #plant Timber.plant()}. */
-  public static abstract class Tree {
-    protected final LogStrategy logStrategy;
-
-    final ThreadLocal<String> explicitTag = new ThreadLocal<String>();
-
-    public Tree(LogStrategy logStrategy) {
-      this.logStrategy = logStrategy;
-    }
-
-    String getTag() {
-      String tag = explicitTag.get();
-      if (tag != null) {
-        explicitTag.remove();
-      }
-      return tag;
-    }
-
-    /** Log a verbose message with optional format args. */
-    public void v(String message, Object... args) {
-      prepareLog(logStrategy.verboseLevel(), null, message, args);
-    }
-
-    /** Log a verbose exception and a message with optional format args. */
-    public void v(Throwable t, String message, Object... args) {
-      prepareLog(logStrategy.verboseLevel(), t, message, args);
-    }
-
-    /** Log a debug message with optional format args. */
-    public void d(String message, Object... args) {
-      prepareLog(logStrategy.debugLevel(), null, message, args);
-    }
-
-    /** Log a debug exception and a message with optional format args. */
-    public void d(Throwable t, String message, Object... args) {
-      prepareLog(logStrategy.debugLevel(), t, message, args);
-    }
-
-    /** Log an info message with optional format args. */
-    public void i(String message, Object... args) {
-      prepareLog(logStrategy.infoLevel(), null, message, args);
-    }
-
-    /** Log an info exception and a message with optional format args. */
-    public void i(Throwable t, String message, Object... args) {
-      prepareLog(logStrategy.infoLevel(), t, message, args);
-    }
-
-    /** Log a warning message with optional format args. */
-    public void w(String message, Object... args) {
-      prepareLog(logStrategy.warnLevel(), null, message, args);
-    }
-
-    /** Log a warning exception and a message with optional format args. */
-    public void w(Throwable t, String message, Object... args) {
-      prepareLog(logStrategy.warnLevel(), t, message, args);
-    }
-
-    /** Log an error message with optional format args. */
-    public void e(String message, Object... args) {
-      prepareLog(logStrategy.errorLevel(), null, message, args);
-    }
-
-    /** Log an error exception and a message with optional format args. */
-    public void e(Throwable t, String message, Object... args) {
-      prepareLog(logStrategy.errorLevel(), t, message, args);
-    }
-
-    /** Log an assert message with optional format args. */
-    public void wtf(String message, Object... args) {
-      prepareLog(logStrategy.wtfLevel(), null, message, args);
-    }
-
-    /** Log an assert exception and a message with optional format args. */
-    public void wtf(Throwable t, String message, Object... args) {
-      prepareLog(logStrategy.wtfLevel(), t, message, args);
-    }
-
-    /** Log at {@code priority} a message with optional format args. */
-    public void log(int priority, String message, Object... args) {
-      prepareLog(priority, null, message, args);
-    }
-
-    /** Log at {@code priority} an exception and a message with optional format args. */
-    public void log(int priority, Throwable t, String message, Object... args) {
-      prepareLog(priority, t, message, args);
-    }
-
-    /** Return whether a message at {@code priority} should be logged. */
-    protected boolean isLoggable(int priority) {
-      return true;
-    }
-
-    private void prepareLog(int priority, Throwable t, String message, Object... args) {
-      if (!isLoggable(priority)) {
-        return;
-      }
-      if (message != null && message.length() == 0) {
-        message = null;
-      }
-      if (message == null) {
-        if (t == null) {
-          return; // Swallow message if it's null and there's no throwable.
-        }
-        message = getStackTraceString(t);
-      } else {
-        if (args.length > 0) {
-          message = String.format(message, args);
-        }
-        if (t != null) {
-          message += "\n" + getStackTraceString(t);
-        }
-      }
-
-      log(priority, getTag(), message, t);
-    }
-
-    private String getStackTraceString(Throwable t) {
-      // Don't replace this with Log.getStackTraceString() - it hides
-      // UnknownHostException, which is not what we want.
-      StringWriter sw = new StringWriter(256);
-      PrintWriter pw = new PrintWriter(sw, false);
-      t.printStackTrace(pw);
-      pw.flush();
-      return sw.toString();
-    }
-
-    /**
-     * Write a log message to its destination. Called for all level-specific methods by default.
-     *
-     * @param priority Log level, from {@link LogStrategy}.
-     * @param tag Explicit or inferred tag. May be {@code null}.
-     * @param message Formatted log message. May be {@code null}, but then {@code t} will not be.
-     * @param t Accompanying exceptions. May be {@code null}, but then {@code message} will not be.
-     */
-    protected abstract void log(int priority, String tag, String message, Throwable t);
-  }
-
-  /** A {@link Tree Tree} for debug builds. Automatically infers the tag from the calling class. */
-  public static class DebugTree extends Tree {
-    private static final int MAX_LOG_LENGTH = 4000;
-    private static final int CALL_STACK_INDEX = 5;
-    private static final Pattern ANONYMOUS_CLASS = Pattern.compile("(\\$\\d+)+$");
-
-    public DebugTree(LogStrategy logStrategy) {
-      super(logStrategy);
-    }
-
-    /**
-     * Extract the tag which should be used for the message from the {@code element}. By default
-     * this will use the class name without any anonymous class suffixes (e.g., {@code Foo$1}
-     * becomes {@code Foo}).
-     * <p>
-     * Note: This will not be called if a {@linkplain #tag(String) manual tag} was specified.
-     */
-    protected String createStackElementTag(StackTraceElement element) {
-      String tag = element.getClassName();
-      Matcher m = ANONYMOUS_CLASS.matcher(tag);
-      if (m.find()) {
-        tag = m.replaceAll("");
-      }
-      return tag.substring(tag.lastIndexOf('.') + 1);
-    }
-
-    @Override final String getTag() {
-      String tag = super.getTag();
-      if (tag != null) {
-        return tag;
-      }
-
-      // DO NOT switch this to Thread.getCurrentThread().getStackTrace(). The test will pass
-      // because Robolectric runs them on the JVM but on Android the elements are different.
-      StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-      if (stackTrace.length <= CALL_STACK_INDEX) {
-        throw new IllegalStateException(
-            "Synthetic stacktrace didn't have enough elements: are you using proguard?");
-      }
-      return createStackElementTag(stackTrace[CALL_STACK_INDEX]);
-    }
-
-    /**
-     * Break up {@code message} into maximum-length chunks (if needed) and send to
-     * {@link LogStrategy#performLog(int, String, String)}
-     *
-     * {@inheritDoc}
-     */
-    @Override protected void log(int priority, String tag, String message, Throwable t) {
-      if (message.length() < MAX_LOG_LENGTH) {
-        logStrategy.performLog(priority, tag, message);
-        return;
-      }
-
-      // Split by line, then ensure each line can fit into Log's maximum length.
-      for (int i = 0, length = message.length(); i < length; i++) {
-        int newline = message.indexOf('\n', i);
-        newline = newline != -1 ? newline : length;
-        do {
-          int end = Math.min(newline, i + MAX_LOG_LENGTH);
-          String part = message.substring(i, end);
-          logStrategy.performLog(priority, tag, part);
-          i = end;
-        } while (i < newline);
-      }
-    }
-  }
 }

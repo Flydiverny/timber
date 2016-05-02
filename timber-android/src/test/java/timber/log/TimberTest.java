@@ -1,7 +1,6 @@
 package timber.log;
 
 import android.util.Log;
-
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,37 +13,33 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
-import timber.android.AndroidTimberLogStrategy;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.robolectric.shadows.ShadowLog.LogItem;
 
 @RunWith(RobolectricTestRunner.class) //
-@Config(manifest = Config.NONE)
-public class TimberTest {
+@Config(manifest = Config.NONE) public class TimberTest {
 
   @Before @After public void setUpAndTearDown() {
     Timber.uprootAll();
   }
 
   // NOTE: This class references the line number. Keep it at the top so it does not change.
-  @Test public void debugTreeCanAlterCreatedTag() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()) {
+  @Test public void TreeCanAlterCreatedTag() {
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy() {
       @Override protected String createStackElementTag(StackTraceElement element) {
         return super.createStackElementTag(element) + ':' + element.getLineNumber();
       }
-    });
+    }));
 
     Timber.d("Test");
 
-    assertLog()
-        .hasDebugMessage("TimberTest:39", "Test")
-        .hasNoMoreMessages();
+    assertLog().hasDebugMessage("TimberTest:36", "Test").hasNoMoreMessages();
   }
 
   @Test public void recursion() {
-    Timber.Tree timber = Timber.asTree();
+    Tree timber = Timber.asTree();
     try {
       Timber.plant(timber);
       fail();
@@ -56,8 +51,8 @@ public class TimberTest {
   @Test public void treeCount() {
     // inserts trees and checks if the amount of returned trees matches.
     assertThat(Timber.treeCount()).isEqualTo(0);
-    for(int i= 1 ; i < 50 ; i++){
-      Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+    for (int i = 1; i < 50; i++) {
+      Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
       assertThat(Timber.treeCount()).isEqualTo(i);
     }
     Timber.uprootAll();
@@ -74,8 +69,8 @@ public class TimberTest {
   }
 
   @Test public void forestReturnsAllPlanted() {
-    Timber.DebugTree tree1 = new Timber.DebugTree(new AndroidTimberLogStrategy());
-    Timber.DebugTree tree2 = new Timber.DebugTree(new AndroidTimberLogStrategy());
+    Tree tree1 = new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy());
+    Tree tree2 = new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy());
     Timber.plant(tree1);
     Timber.plant(tree2);
 
@@ -84,7 +79,7 @@ public class TimberTest {
 
   @Test public void uprootThrowsIfMissing() {
     try {
-      Timber.uproot(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+      Timber.uproot(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
       fail();
     } catch (IllegalArgumentException e) {
       assertThat(e).hasMessageStartingWith("Cannot uproot tree which is not planted: ");
@@ -92,56 +87,50 @@ public class TimberTest {
   }
 
   @Test public void uprootRemovesTree() {
-    Timber.DebugTree tree1 = new Timber.DebugTree(new AndroidTimberLogStrategy());
-    Timber.DebugTree tree2 = new Timber.DebugTree(new AndroidTimberLogStrategy());
+    Tree tree1 = new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy());
+    Tree tree2 = new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy());
     Timber.plant(tree1);
     Timber.plant(tree2);
     Timber.d("First");
     Timber.uproot(tree1);
     Timber.d("Second");
 
-    assertLog()
-        .hasDebugMessage("TimberTest", "First")
+    assertLog().hasDebugMessage("TimberTest", "First")
         .hasDebugMessage("TimberTest", "First")
         .hasDebugMessage("TimberTest", "Second")
         .hasNoMoreMessages();
   }
 
   @Test public void uprootAllRemovesAll() {
-    Timber.DebugTree tree1 = new Timber.DebugTree(new AndroidTimberLogStrategy());
-    Timber.DebugTree tree2 = new Timber.DebugTree(new AndroidTimberLogStrategy());
+    Tree tree1 = new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy());
+    Tree tree2 = new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy());
     Timber.plant(tree1);
     Timber.plant(tree2);
     Timber.d("First");
     Timber.uprootAll();
     Timber.d("Second");
 
-    assertLog()
-        .hasDebugMessage("TimberTest", "First")
+    assertLog().hasDebugMessage("TimberTest", "First")
         .hasDebugMessage("TimberTest", "First")
         .hasNoMoreMessages();
   }
 
   @Test public void noArgsDoesNotFormat() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     Timber.d("te%st");
 
-    assertLog()
-        .hasDebugMessage("TimberTest", "te%st")
-        .hasNoMoreMessages();
+    assertLog().hasDebugMessage("TimberTest", "te%st").hasNoMoreMessages();
   }
 
-  @Test public void debugTreeTagGeneration() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+  @Test public void TreeTagGeneration() {
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     Timber.d("Hello, world!");
 
-    assertLog()
-        .hasDebugMessage("TimberTest", "Hello, world!")
-        .hasNoMoreMessages();
+    assertLog().hasDebugMessage("TimberTest", "Hello, world!").hasNoMoreMessages();
   }
 
-  @Test public void debugTreeTagGenerationStripsAnonymousClassMarker() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+  @Test public void TreeTagGenerationStripsAnonymousClassMarker() {
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     new Runnable() {
       @Override public void run() {
         Timber.d("Hello, world!");
@@ -154,23 +143,20 @@ public class TimberTest {
       }
     }.run();
 
-    assertLog()
-        .hasDebugMessage("TimberTest", "Hello, world!")
+    assertLog().hasDebugMessage("TimberTest", "Hello, world!")
         .hasDebugMessage("TimberTest", "Hello, world!")
         .hasNoMoreMessages();
   }
 
-  @Test public void debugTreeCustomTag() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+  @Test public void TreeCustomTag() {
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     Timber.tag("Custom").d("Hello, world!");
 
-    assertLog()
-        .hasDebugMessage("Custom", "Hello, world!")
-        .hasNoMoreMessages();
+    assertLog().hasDebugMessage("Custom", "Hello, world!").hasNoMoreMessages();
   }
 
   @Test public void messageWithException() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     NullPointerException datThrowable = new NullPointerException();
     Timber.e(datThrowable, "OMFG!");
 
@@ -178,7 +164,7 @@ public class TimberTest {
   }
 
   @Test public void exceptionFromSpawnedThread() throws InterruptedException {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     final NullPointerException datThrowable = new NullPointerException();
     final CountDownLatch latch = new CountDownLatch(1);
     new Thread() {
@@ -192,7 +178,7 @@ public class TimberTest {
   }
 
   @Test public void nullMessageWithThrowable() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     final NullPointerException datThrowable = new NullPointerException();
     Timber.e(datThrowable, null);
 
@@ -200,11 +186,10 @@ public class TimberTest {
   }
 
   @Test public void chunkAcrossNewlinesAndLimit() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     Timber.d(repeat('a', 3000) + '\n' + repeat('b', 6000) + '\n' + repeat('c', 3000));
 
-    assertLog()
-        .hasDebugMessage("TimberTest", repeat('a', 3000))
+    assertLog().hasDebugMessage("TimberTest", repeat('a', 3000))
         .hasDebugMessage("TimberTest", repeat('b', 4000))
         .hasDebugMessage("TimberTest", repeat('b', 2000))
         .hasDebugMessage("TimberTest", repeat('c', 3000))
@@ -212,7 +197,7 @@ public class TimberTest {
   }
 
   @Test public void nullMessageWithoutThrowable() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     Timber.d(null);
 
     assertLog().hasNoMoreMessages();
@@ -220,11 +205,11 @@ public class TimberTest {
 
   @Test public void logMessageCallback() {
     final List<String> logs = new ArrayList<String>();
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()) {
-      @Override protected void log(int priority, String tag, String message, Throwable t) {
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy() {
+      @Override protected void performLog(int priority, String tag, String message, Throwable t) {
         logs.add(priority + " " + tag + " " + message);
       }
-    });
+    }));
 
     Timber.v("Verbose");
     Timber.tag("Custom").v("Verbose");
@@ -256,7 +241,7 @@ public class TimberTest {
   }
 
   @Test public void logAtSpecifiedPriority() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
 
     Timber.log(Log.VERBOSE, "Hello, World!");
     Timber.log(Log.DEBUG, "Hello, World!");
@@ -265,8 +250,7 @@ public class TimberTest {
     Timber.log(Log.ERROR, "Hello, World!");
     Timber.log(Log.ASSERT, "Hello, World!");
 
-    assertLog()
-        .hasVerboseMessage("TimberTest", "Hello, World!")
+    assertLog().hasVerboseMessage("TimberTest", "Hello, World!")
         .hasDebugMessage("TimberTest", "Hello, World!")
         .hasInfoMessage("TimberTest", "Hello, World!")
         .hasWarnMessage("TimberTest", "Hello, World!")
@@ -276,7 +260,7 @@ public class TimberTest {
   }
 
   @Test public void formatting() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     Timber.v("Hello, %s!", "World");
     Timber.d("Hello, %s!", "World");
     Timber.i("Hello, %s!", "World");
@@ -284,8 +268,7 @@ public class TimberTest {
     Timber.e("Hello, %s!", "World");
     Timber.wtf("Hello, %s!", "World");
 
-    assertLog()
-        .hasVerboseMessage("TimberTest", "Hello, World!")
+    assertLog().hasVerboseMessage("TimberTest", "Hello, World!")
         .hasDebugMessage("TimberTest", "Hello, World!")
         .hasInfoMessage("TimberTest", "Hello, World!")
         .hasWarnMessage("TimberTest", "Hello, World!")
@@ -295,11 +278,11 @@ public class TimberTest {
   }
 
   @Test public void isLoggableControlsLogging() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()) {
-      @Override protected boolean isLoggable(int priority) {
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy() {
+      @Override protected boolean shouldLog(int priority, String message, Throwable t) {
         return priority == Log.INFO;
       }
-    });
+    }));
     Timber.v("Hello, World!");
     Timber.d("Hello, World!");
     Timber.i("Hello, World!");
@@ -307,13 +290,11 @@ public class TimberTest {
     Timber.e("Hello, World!");
     Timber.wtf("Hello, World!");
 
-    assertLog()
-        .hasInfoMessage("TimberTest", "Hello, World!")
-        .hasNoMoreMessages();
+    assertLog().hasInfoMessage("TimberTest", "Hello, World!").hasNoMoreMessages();
   }
 
   @Test public void logsUnknownHostExceptions() {
-    Timber.plant(new Timber.DebugTree(new AndroidTimberLogStrategy()));
+    Timber.plant(new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy()));
     Timber.e(new UnknownHostException(), null);
 
     assertExceptionLogged("", "UnknownHostException");
