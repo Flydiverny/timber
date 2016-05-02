@@ -1,9 +1,13 @@
-package timber.android;
+package timber.log;
 
 import android.util.Log;
-import timber.log.Timber;
 
-public class AndroidTimberLogStrategy implements Timber.LogStrategy {
+/**
+ * A provided implementation of {@link LogLevel} for {@link android.util.Log}. Can be used when
+ * constructing any new {@link Tree} instances on Android that don't need any special log-levels.
+ */
+public class AndroidLogLevel implements LogLevel {
+
   @Override public int verboseLevel() {
     return Log.VERBOSE;
   }
@@ -26,13 +30,5 @@ public class AndroidTimberLogStrategy implements Timber.LogStrategy {
 
   @Override public int wtfLevel() {
     return Log.ASSERT;
-  }
-
-  @Override public void performLog(int priority, String tag, String message) {
-    if (priority == wtfLevel()) {
-      Log.wtf(tag, message);
-    } else {
-      Log.println(priority, tag, message);
-    }
   }
 }
