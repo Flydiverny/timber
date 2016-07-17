@@ -1,6 +1,7 @@
 package timber.log;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
 
@@ -106,6 +107,25 @@ public final class Timber {
     }
     synchronized (FOREST) {
       FOREST.add(tree);
+      forestAsArray = FOREST.toArray(new Tree[FOREST.size()]);
+    }
+  }
+
+  /** Adds new logging trees. */
+  public static void plant(Tree... trees) {
+    if (trees == null) {
+      throw new NullPointerException("trees == null");
+    }
+    for (Tree tree : trees) {
+      if (tree == null) {
+        throw new NullPointerException("trees contains null");
+      }
+      if (tree == TREE_OF_SOULS) {
+        throw new IllegalArgumentException("Cannot plant Timber into itself.");
+      }
+    }
+    synchronized (FOREST) {
+      Collections.addAll(FOREST, trees);
       forestAsArray = FOREST.toArray(new Tree[FOREST.size()]);
     }
   }

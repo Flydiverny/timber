@@ -46,6 +46,12 @@ import static org.robolectric.shadows.ShadowLog.LogItem;
     } catch (IllegalArgumentException e) {
       assertThat(e).hasMessage("Cannot plant Timber into itself.");
     }
+    try {
+      Timber.plant(new Timber.Tree[] { timber });
+      fail();
+    } catch (IllegalArgumentException e) {
+      assertThat(e).hasMessage("Cannot plant Timber into itself.");
+    }
   }
 
   @Test public void treeCount() {
@@ -59,12 +65,32 @@ import static org.robolectric.shadows.ShadowLog.LogItem;
     assertThat(Timber.treeCount()).isEqualTo(0);
   }
 
+  @SuppressWarnings("ConstantConditions")
   @Test public void nullTree() {
+    Timber.Tree nullTree = null;
     try {
-      Timber.plant(null);
+      Timber.plant(nullTree);
       fail();
     } catch (NullPointerException e) {
       assertThat(e).hasMessage("tree == null");
+    }
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  @Test public void nullTreeArray() {
+    Timber.Tree[] nullTrees = null;
+    try {
+      Timber.plant(nullTrees);
+      fail();
+    } catch (NullPointerException e) {
+      assertThat(e).hasMessage("trees == null");
+    }
+    nullTrees = new Timber.Tree[] { null };
+    try {
+      Timber.plant(nullTrees);
+      fail();
+    } catch (NullPointerException e) {
+      assertThat(e).hasMessage("trees contains null");
     }
   }
 
@@ -73,6 +99,14 @@ import static org.robolectric.shadows.ShadowLog.LogItem;
     Tree tree2 = new Tree(new AndroidLogLevel(), new AndroidDebugLogStrategy());
     Timber.plant(tree1);
     Timber.plant(tree2);
+
+    assertThat(Timber.forest()).containsExactly(tree1, tree2);
+  }
+
+  @Test public void forestReturnsAllTreesPlanted() {
+    Timber.DebugTree tree1 = new Timber.DebugTree();
+    Timber.DebugTree tree2 = new Timber.DebugTree();
+    Timber.plant(tree1, tree2);
 
     assertThat(Timber.forest()).containsExactly(tree1, tree2);
   }
